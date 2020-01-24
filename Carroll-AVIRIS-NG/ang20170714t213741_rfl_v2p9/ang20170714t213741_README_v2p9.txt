@@ -1,0 +1,203 @@
+===============================================================================
+AVIRIS-NG Distribution Document 
+===============================================================================
+
+Michael Eastwood, meastwood@jpl.nasa.gov 
+Sarah R. Lundeen, Sarah.R.Lundeen@jpl.nasa.gov
+Robert O. Green, Robert.O.Green@jpl.nasa.gov
+David R. Thompson, David.R.Thompson@jpl.nasa.gov 
+
+This document describes the AVIRIS-NG L1 and L2 data 
+products.  AVIRIS-NG is an imaging spectrometer that measures reflected 
+radiance at 5nm intervals in the Visible to Shortwave Infrared (VSWIR) 
+spectral range from 380-2510nm.  
+
+Additional information may be found on http://avirisng.jpl.nasa.gov
+
+-------------------------------------------------------------------------------
+OVERVIEW
+-------------------------------------------------------------------------------
+
+Each flightline uses a specific base filename prefix: angYYYYMMDDtHHNNSS
+
+YYYY:  The year of the airborne flight run.
+MM:    The month of the airborne flight run (i.e. 05 represents May).
+DD:    The day of the airborne flight run (22 is the 22nd day of the month)
+HH:    UTC hour at the start of acquisition
+NN:    UTC minute at the start of acquisition
+SS:    UTC second at the start of acquisition
+
+The AVIRIS-NG data products for a particular airborne flight run are organized 
+in the following directory structure, labeled with a processing version marker 
+VVV:
+
+/YYYYMMDDtHHNNSS_VVV
+|   angYYYYMMDDtHHNNSS_rdn_VVV_img
+|   angYYYYMMDDtHHNNSS_rdn_VVV_img.hdr
+|   angYYYYMMDDtHHNNSS_rfl_VVV_img
+|   angYYYYMMDDtHHNNSS_rfl_VVV_img.hdr
+|   angYYYYMMDDtHHNNSS_ort_glt
+|   angYYYYMMDDtHHNNSS_ort_glt.hdr
+|   angYYYYMMDDtHHNNSS_ort_igm
+|   angYYYYMMDDtHHNNSS_ort_igm.hdr
+
+The file product codes signify:
+
+   *obs_ort             parameters relating to the geometry of observation and
+                        illumination rendered using the *_ort_glt lookup table
+   *obs_ort.hdr         obs_ort image header file
+   *ort_glt             geometric look-up table
+   *ort_glt.hdr         GLT image header file
+   *ort_igm             input geometry file
+   *ort_igm.hdr         IGM image header file
+   *rdn_VVV_img         orthocorrected radiance image file
+   *rdn_VVV_img.hdr     RDN image header file
+   *rfl_VVV_img         orthocorrected reflectance image file
+   *rfl_VVV_img.hdr     CORR image header file
+
+
+------------------------------------------------------------------------------
+FILE DESCRIPTIONS
+------------------------------------------------------------------------------
+
+*ort_glt   GEOMETRIC LOOKUP TABLE (GLT)
+
+Contents:  Orthocorrected product with a fixed pixel size projected into a 
+           rotated UTM system that contains the information about which 
+           original pixel occupies which output pixel in the final product. 
+           Additionally, each pixel is sign-coded to indicate if it is real 
+           (indicated by a positive value) or a nearest-neighbor infill 
+           (indicated by negative values).
+           
+           The GLT file contains two parameters:
+              1) sample number
+              2) original line number
+              
+File type: BINARY 16-bit, integer, IEEE.
+
+Format:    Band interleaved by line
+
+------------------------------------------------------------------------------
+
+*ort_glt.hdr  HEADER FILE FOR GEOMETRIC LOOKUP TABLE (GLT.HDR) DATA
+                 
+Contents:  Format of each *ort_glt file.  This file contains the number of 
+           lines, samples, channel, integer format, pixel size, scene 
+           elevation, UTM zone number and rotation angle information, etc.
+           
+File type: ASCII
+
+-------------------------------------------------------------------------------
+
+*ort_igm  INPUT GEOMETRY FILE (IGM)
+
+Contents:  Pixel location data for each radiance image cube. The IGM file data 
+           contain three parameters:
+           1) WGS-84 longitude (reported in decimal degrees)
+           2) WGS-84 latitude (reported in decimal degrees)
+           3) Estimated ground elevation at each pixel center 
+              (reported in meters)
+                
+           No map correction or resampling is applied to the radiance image 
+           cube; the IGM file only reports the surface location of the 
+           unadjusted pixel centers.
+
+File type: BINARY 64-bit double precision, floating point IEEE.
+
+Units:     Band 1 - decimal degrees
+           Band 2 - decimal degrees
+           Band 3 - meters
+
+Format:    Band interleaved by line 
+
+----------------------------------------------------------------------------
+
+*ort_igm.hdr  HEADER FILE FOR INPUT GEOMETRY FILE (IGM) DATA
+
+Contents:  Format of each *ort_igm file.  This file contains the number of 
+           lines, samples, channel, integer format, etc.
+
+File type: ASCII
+
+----------------------------------------------------------------------------
+
+*rdn_VVV_img CALIBRATED AVIRIS-NG RADIANCE (IMAGE) DATA
+
+Contents:  AVIRIS-NG calibrated radiance 
+
+File type: BINARY 32-bit little-endian floating point IEEE.
+
+Units:     microwatts per centimeter_squared per nanometer per steradian
+
+Format:    Band interleaved by line 
+
+--------------------------------------------------------------------------------
+
+*rdn_VVV_img.hdr HEADER FILE FOR CALIBRATED AVIRIS-NG RADIANCE (IMAGE) DATA
+
+Contents:  Format of each AVIRIS-NG calibrated radiance scene.  This file 
+           contains the number of lines, samples, channel, etc. It also records 
+           the spectral calibration (wavelength and full-width at half-maximum 
+           value) for every channel in the radiance data.
+
+File type: ASCII
+
+----------------------------------------------------------------------------
+
+*rfl_VVV_img     CALIBRATED AVIRIS-NG REFLECTANCE (IMAGE) DATA
+
+Contents:  AVIRIS-NG water-leaving reflectance
+           
+File type: BINARY 32-bit little-endian floating point IEEE.
+           
+Units:     Apparent surface reflectance (Gao et al., 1993; 
+              Thompson et al., 2015)
+           
+Format:    Band interleaved by line 
+
+--------------------------------------------------------------------------------
+
+*rfl_VVV_img.hdr   HEADER FILE FOR CALIBRATED AVIRIS-NG REFLECTANCE (IMAGE) DATA
+
+Contents:  Format of each AVIRIS-NG calibrated reflectance scene.  
+           This file contains the number of lines, samples, channel, etc. It 
+           also records the spectral calibration (wavelength and full-width at 
+           half-maximum values) for every channel in the radiance data.            
+
+File type: ASCII
+
+
+--------------------------------------------------------------------------------
+REFERENCES
+--------------------------------------------------------------------------------
+
+Gao, B.C., K. H. Heidebrecht, and A. F. H. Goetz, Derivation of scaled surface 
+  reflectances from AVIRIS data, Remote Sens. Env., 44, 165-178, 1993
+
+D. R. Thompson, B. C. Gao, R. O. Green, P. E. Dennison, D. A. Roberts, 
+  S. Lundeen. Atmospheric Correction for Global Mapping Spectroscopy: Advances
+  for the HyspIRI Preparatory Campaign. Remote Sens. of Env., 167, 2015
+
+D. R. Thompson, F. C. Seidel, B. C. Gao, M. Gierach, R. O. Green, R. M. Kudela, 
+  P. Mouroulis. Optimizing irradiance estimates for coastal and inland water 
+  imaging spectroscopy. Geophysical Research Letters 42, 2015.
+
+
+--------------------------------------------------------------------------------
+ACKNOWLEDGEMENTS
+--------------------------------------------------------------------------------
+
+This research was performed at the Jet Propulsion Laboratory, California 
+Institute of Technology, under contract with the National Aeronautics and 
+Space Administration (NASA).  We are grateful for the help and assistance of 
+colleagues including Bo-Cai Gao (NRL), Ian McCubbin (JPL), Dar Roberts (UCSB),
+Mark Helmlinger (JPL), Scott Nolte (JPL), Ernie Diaz (JPL), Daniel Nunes (JPL),
+and the rest of the AVIRIS-NG team. Copyright 2016 California Institute of 
+Technology.  All Rights Reserved.  U.S. Government Support Acknowledged.
+
+--------------------------------------------------------------------------------
+MODIFICATIONS
+--------------------------------------------------------------------------------
+6 Feb  . 2016 (D. R. Thompson) - Minor updates, translated back to AVIRIS-NG
+21 Sept. 2014 (D. R. Thompson) - Translated from AVIRIS-NG to PRISM
+10 Sept. 2014 (D. R. Thompson) - Initial document
