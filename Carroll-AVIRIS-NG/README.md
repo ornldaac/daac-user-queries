@@ -12,8 +12,8 @@ Run this command to translate the ENVI binary image straight to GeoTIFF, preserv
 
 ## Tools
 
-* gdal_translate: https://gdal.org/programs/gdalwarp.html
-* gdalwarp: https://gdal.org/programs/gdalwarp.html
+* `gdal_translate`: https://gdal.org/programs/gdalwarp.html
+* `gdalwarp`: https://gdal.org/programs/gdalwarp.html
 
 ## Background Info
 
@@ -23,7 +23,7 @@ Extract one band for the example:
 gdal_translate -b 1 -of ENVI ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1
 ```
 
-Print the gdalinfo for the extracted band:
+Print the `gdalinfo` for the extracted band:
 
 ```shell
 gdalinfo ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1
@@ -107,8 +107,8 @@ GeoTransform =
 The affine transform gives you the correct pixel sizes according to these equations (by plugging in the values at positions 1 and 5):
 
 ```shell
-X = sqrt(GT(1)*GT(1)+GT(2)*GT(2)) = sqrt
-Y = sqrt(GT(4)*GT(4)+GT(5)*GT(5)) = sqrt
+X = sqrt(GT(1)*GT(1)+GT(2)*GT(2))
+Y = sqrt(GT(4)*GT(4)+GT(5)*GT(5))
 ```
 
 So ...
