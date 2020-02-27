@@ -1,10 +1,28 @@
-# Carroll-AVIRIS-NG
+# Considerations for converting to/from ENVI format: AVIRIS-NG
 
-Information related to Mark Carroll's question about AVIRIS-NG imagery from ABoVE.
+Author: ORNL DAAC         
+Date: February 27, 2020         
+Contact for ORNL DAAC: uso@daac.ornl.gov         
+Keywords: Python, GDAL, ENVI, GeoTIFF, Raster
 
-## Notes
+## Introduction
+
+AVIRIS-NG imagery like those collected for ABoVE (cited below) are distributed in ENVI binary image format. ENVI image analysis software ([Harris Geospatial](https://www.harrisgeospatial.com/Software-Technology/ENVI)) has a special way of representing a raster grid which allows for a rotated grid such that the pixels are not "north-up". This feature allows the imagery to be analyzed without resampling, as would be required in a traditional GIS, and preserves the radiance values as measured by the instrument. The ENVI format's rotated grid can cause unfamiliar behavior when the a file is loaded into a GIS like ArcGIS 10.x (as of February 2020), such as misrepresented X and Y resolutions.
+
+This README attempts to explain the concept of the rotated grid from the perspective of a GIS user, and demonstrates how to transform a rotated grid to north-up while minimizing distortion of the underlying data **using GDAL** binary utilities.
 
 **Rotated ENVI files are supported in GDAL version 2.2.0 or greater.**
+
+## Dataset
+
+**ABoVE: Hyperspectral Imagery from AVIRIS-NG for Alaskan and Canadian Arctic, 2017**
+
+```
+Miller, C.E., R.O. Green, D.R. Thompson, A.K. Thorpe, M. Eastwood, I.B. Mccubbin, W. Olson-duvall, M. Bernas, C.M. Sarture, S. Nolte, L.M. Rios, M.A. Hernandez, B.D. Bue, and S.R. Lundeen. 2018. ABoVE: Hyperspectral Imagery from AVIRIS-NG for Alaskan and Canadian Arctic, 2017. ORNL DAAC, Oak Ridge, Tennessee, USA. https://doi.org/10.3334/ORNLDAAC/1569
+```
+
+Please see the User Guide for a comprehensive description of this dataset:
+https://daac.ornl.gov/ABOVE/guides/ABoVE_Airborne_AVIRIS_NG.html
 
 Rotated imagery is not well-supported in ArcMap (not sure if ArcGIS Pro is any better). You probably noticed that ArcMap can't accurately compute the resolution. I've read that (apparently a worldfile helps).
 
@@ -12,16 +30,32 @@ Run this command to translate the ENVI binary image straight to GeoTIFF, preserv
 
 ## Tools
 
-* `gdal_translate`: https://gdal.org/programs/gdalwarp.html
+* `gdal_translate`: https://gdal.org/programs/gdal_translate.html
+* `gdalinfo`: https://gdal.org/programs/gdalinfo.html
 * `gdalwarp`: https://gdal.org/programs/gdalwarp.html
 
-## Background Info
+## Background
 
-Extract one band for the example:
+Download the example granule (L2 reflectance) from the ORNL DAAC data pool at this link:       
+https://daac.ornl.gov/daacdata/above/ABoVE_Airborne_AVIRIS_NG/data/ang20170714t213741rfl.tar.gz
+
+Extract the *.tar.gz*.
+
+Warping the entire 400+ band image can take quite a long time, so use `gdal_translate` to extract one band:
 
 ```shell
-gdal_translate -b 1 -of ENVI ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1
+gdal_translate \
+  -b 1 \
+  -of ENVI \
+  ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img \
+  ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1
 ```
+
+The `gdal_translate` arguments that we used:
+
+* `-b 1` extracts only band 1,
+* `-of ENVI` outputs to another ENVI binary image, and
+* the trailing positional arguments are the input and output file, in that order.
 
 Print the `gdalinfo` for the extracted band:
 
@@ -68,7 +102,32 @@ Band 1 Block=648x1 Type=Float32, ColorInterp=Undefined
 
 ```
 
-Look back at the ENVI header:
+The raster's *GeoTransform* is of particular interest here:
+
+```shell
+GeoTransform =
+  581226.666764, 3.86435309248245, 3.479479153066063
+  7916192.56364, 3.479479153066063, -3.86435309248245
+```
+
+In a north-up raster, the `x` and `y` resolutions are given at positions **1** and **5** (base 0) of the *GeoTransform*,  respectively:
+
+```shell
+GeoTransform =
+  581226.666764,        #  0. x origin
+  3.86435309248245,     #  1. x resolution
+  3.479479153066063,    #  2. x rotation/skew
+  7916192.56364,        #  3. y origin
+  3.479479153066063,    #  4. y rotation/skew
+  -3.86435309248245     #  5. y resolution
+```
+
+See GDAL's explanation of the raster data model for more information:        
+https://gdal.org/user/raster_data_model.html#affine-geotransform
+
+So, the x and y resolutions are, respectively: `3.86435309248245, -3.86435309248245`.
+
+Not so! We can see the true resolution by looking into the ENVI image's accompanying header file (`ang20170714t213741_corr_v2p9_img_band1.hdr`):
 
 ```shell
 ENVI
@@ -88,34 +147,53 @@ band names = {
 376.86 Nanometers}
 ```
 
-The resolution should be 5.2 meters in both x and y:
+*(The complete ENVI header file reference is accessible here: https://www.harrisgeospatial.com/docs/ENVIHeaderFiles.html)*
+
+Spatial attributes (other than the projection definition, given as OGC standard Well Known Text in the `coordinate system string` field) are given in the `map info` field:
 
 ```shell
 map info = {UTM, 1, 1, 581226.666764, 7916192.56364, 5.2, 5.2, 4, North,WGS-84, rotation=42}
 ```
 
-In a north up raster, the GeoTransform would give the x and y resolutions at positions 1 and 5 respectively (base 0). See: https://gdal.org/user/raster_data_model.html#affine-geotransform 
+The `map info` field lists the follow info in this order:
 
-But the GeoTransform given by `gdalinfo` has other funny floats:
+Lists geographic information in the following order:
+
+1. Projection name
+2. Reference (tie point) pixel x location (in file coordinates)
+3. Reference (tie point) pixel y location (in file coordinates)
+4. Pixel easting
+5. Pixel northing
+6. x pixel size
+7. y pixel size
+8. Projection zone (UTM only)
+9. North or South (UTM only)
+10. Datum
+11. Units
+
+Comparing the values for these fields to the info given in the *GeoTransform* returned by `gdalinfo`:
+
+* Pixel easting: `581226.666764` == `581226.666764`
+* Pixel northing: `7916192.56364` == `7916192.56364`
+* **x pixel size: `5.2` != `3.86435309248245`**
+* **y pixel size: `5.2` != `-3.86435309248245`**
+
+So, we've established that the values in the *GeoTransform* do not represent the same thing for a rotated raster as they do for a north-up raster. 
+
+Following the affine transform equations given in the raster data model documentation ([here](https://gdal.org/user/raster_data_model.html#affine-geotransform)) ...
 
 ```shell
-GeoTransform =
-  581226.666764, 3.86435309248245, 3.479479153066063
-  7916192.56364, 3.479479153066063, -3.86435309248245
+X = sqrt(GT(1)*GT(1) + GT(2)*GT(2))
+Y = sqrt(GT(4)*GT(4) + GT(5)*GT(5))
 ```
 
-The affine transform gives you the correct pixel sizes according to these equations (by plugging in the values at positions 1 and 5):
+*(where GT is the GeoTransform tuple of six values shown several times above...)*
+
+we can calculate the correct pixel sizes:
 
 ```shell
-X = sqrt(GT(1)*GT(1)+GT(2)*GT(2))
-Y = sqrt(GT(4)*GT(4)+GT(5)*GT(5))
-```
-
-So ...
-
-```shell
-X = sqrt(3.86435309248245*3.86435309248245+3.479479153066063*3.479479153066063)
-Y = sqrt(3.479479153066063*3.479479153066063+-3.86435309248245*-3.86435309248245)
+X = sqrt( 3.86435309248245*3.86435309248245 + 3.479479153066063*3.479479153066063 )
+Y = sqrt( 3.479479153066063*3.479479153066063 + -3.86435309248245*-3.86435309248245 )
 ```
 
 In Python 3:
@@ -129,31 +207,26 @@ In Python 3:
 
 ```
 
-## Your options
+*Nice.* GDAL is interpreting the rotated raster's spatial dimensions correctly.
 
-### Option 1
+## Resampling/Converting to GeoTIFF
 
-It's not a perfect solution, but `gdalwarp` will resample to a north-up grid for you:
+[`gdalwarp`](https://gdal.org/programs/gdalwarp.html) will resample the ENVI images files to a north-up grid for you, and (optionally) convert to a new output raster format (GeoTIFF in this case):
 
 ```shell
-jnd@jnd-laptop: ~/Desktop/daac-user-queries/Carroll-AVIRIS-NG 
-[2020-01-24 13:25] $ gdalwarp -f GTiff ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1 ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1.tif
-
-Creating output file that is 2896P x 3116L.
-Processing ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1 [1/1] : 0Using internal nodata values (e.g. -9999) for image ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1.
-Copying nodata values from source ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1 to destination ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1.tif.
-...10...20...30...40...50...60...70...80...90...100 - done.
-
+gdalwarp \
+  -f GTiff \
+  ang20170714t213741_corr_v2p9_img_band1 \
+  ang20170714t213741_corr_v2p9_img_band1.tif
 ```
 
-I specified GeoTIFF output format so you can see the result in ArcMap:
+You can see that the raster displays in the correct location by loading into ArcMap with a basemap:
 
-![gdalwarp_result](docs/gdalwarp_result.png)
+![gdalwarp_result](https://raw.githubusercontent.com/jjmcnelis/daac-user-queries/master/Carroll-AVIRIS-NG/docs/gdalwarp_result.png)
 
-Your free to choose from resampling methods other than the default (https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r):
+There are numerous free to choose from resampling methods available in the `gdalwarp` command. The default (nearest neighbor) is the fastest and (most likely) the safest in this scenario. However, you might consider using other resampling methods depending on your analysis needs:
 
 ```shell
-
 -r <resampling_method>
 
 Resampling method to use. Available methods are:
@@ -171,21 +244,17 @@ Resampling method to use. Available methods are:
     q3: third quartile resampling, selects the third quartile value of all non-NODATA contributing pixels.
 ```
 
-### Option 2
+*(The complete list of arguments for `gdalwarp` is given here: https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r)*
 
-This doesn't solve the rotation issue, but it's only one step. 
+If you are transforming the entire image stack to a single GeoTIFF, you'll probably need to specify the `BIGTIFF` output driver, depending on the file size, and you can reduce the output file size by using internal compression (here I specify `LZW`).
 
-You can use `gdal_translate` to translate the rotated raster into something that ArcMap/other GIS can understand:
+Both are *creation options* available through the GDAL C API which are passed to the `gdalwarp` command with the `-co` argument:
 
 ```shell
-jnd@jnd-laptop: ~/Desktop/daac-user-queries/Carroll-AVIRIS-NG 
-[2020-01-24 13:37] $ gdal_translate -of GTiff ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1 ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img_band1_rotated.tif
-
-Input file size is 648, 3609
-0...10...20...30...40...50...60...70...80...90...100 - done.
+gdalwarp \
+  -f GTiff \
+  -co bigtiff=yes \
+  -co compress=lzw \
+  ang20170714t213741_corr_v2p9_img_band1 \
+  ang20170714t213741_corr_v2p9_img_band1.tif
 ```
-
-Here's how this one looks in ArcMap:
-
-**`... ran out of time before our call. I will update.`**
-
