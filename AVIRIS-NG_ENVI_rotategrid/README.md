@@ -39,7 +39,7 @@ https://daac.ornl.gov/ABOVE/guides/ABoVE_Airborne_AVIRIS_NG.html
 Download the example granule (L2 reflectance) from the ORNL DAAC data pool at this link:       
 https://daac.ornl.gov/daacdata/above/ABoVE_Airborne_AVIRIS_NG/data/ang20170714t213741rfl.tar.gz
 
-Access to this data is free but reequires a [NASA Earthdata login](https://urs.earthdata.nasa.gov/) 
+Access to this data is free but requires a [NASA Earthdata login](https://urs.earthdata.nasa.gov/) 
 
 ## Procedure
 
