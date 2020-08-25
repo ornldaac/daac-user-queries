@@ -18,14 +18,15 @@ This image shows a single band of AVIRIS-NG imagery properly displayed within ES
 
 ## Dataset
 
-**ABoVE: Hyperspectral Imagery from AVIRIS-NG for Alaskan and Canadian Arctic, 2017**
+**ABoVE: Hyperspectral Imagery from AVIRIS-NG, Alaskan and Canadian Arctic, 2017-2018**
 
 ```
-Miller, C.E., R.O. Green, D.R. Thompson, A.K. Thorpe, M. Eastwood, I.B. Mccubbin, W. Olson-duvall, M. Bernas, C.M. Sarture, S. Nolte, L.M. Rios, M.A. Hernandez, B.D. Bue, and S.R. Lundeen. 2018. ABoVE: Hyperspectral Imagery from AVIRIS-NG for Alaskan and Canadian Arctic, 2017. ORNL DAAC, Oak Ridge, Tennessee, USA. https://doi.org/10.3334/ORNLDAAC/1569
+Miller, C.E., R.O. Green, D.R. Thompson, A.K. Thorpe, M. Eastwood, I.B. Mccubbin, W. Olson-duvall, M. Bernas, C.M. Sarture, S. Nolte, L.M. Rios, M.A. Hernandez, B.D. Bue, and S.R. Lundeen. 2019. ABoVE: Hyperspectral Imagery from AVIRIS-NG, Alaskan and Canadian Arctic, 2017-2018. ORNL DAAC, Oak Ridge, Tennessee, USA. https://doi.org/10.3334/ORNLDAAC/1569
 ```
 
 See the User Guide for a comprehensive description of this dataset:
 https://daac.ornl.gov/ABOVE/guides/ABoVE_Airborne_AVIRIS_NG.html
+
 
 ## Prerequisites
 
@@ -37,6 +38,8 @@ https://daac.ornl.gov/ABOVE/guides/ABoVE_Airborne_AVIRIS_NG.html
 
 Download the example granule (L2 reflectance) from the ORNL DAAC data pool at this link:       
 https://daac.ornl.gov/daacdata/above/ABoVE_Airborne_AVIRIS_NG/data/ang20170714t213741rfl.tar.gz
+
+Access to this data is free but reequires a [NASA Earthdata login](https://urs.earthdata.nasa.gov/) 
 
 ## Procedure
 
