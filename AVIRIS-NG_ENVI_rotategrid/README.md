@@ -14,6 +14,7 @@ This tutorial explains the concept of the rotated grid from the perspective of a
 **Rotated ENVI files are supported in GDAL version 2.2.0 or greater.**
 
 <img src="images\gdalwarp_result.png" width="750" style="display:block;margin-left: auto; margin-right:auto;">
+This image shows a single band of AVIRIS-NG imagery properly displayed within ESRI ArcMap software.
 
 ## Dataset
 
