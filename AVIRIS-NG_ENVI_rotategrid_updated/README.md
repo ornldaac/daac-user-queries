@@ -43,14 +43,14 @@ Access to this data is free but requires a [NASA Earthdata login](https://urs.ea
 
 ---
 
-## Procedure
+# Procedure
 
-#Understanding AVIRIS-NG data in ENVI format with rotated grid
+## Understanding AVIRIS-NG data in ENVI format with rotated grid
 
 The following steps will walk you through the procedure to transform a rotated grid (the pixel space) to north-up (the geodetic space) while minimizing distortion of the underlying data **using GDAL** binary utilities.
 
 ## Dataset Example
----
+
 **ABoVE: Hyperspectral Imagery from AVIRIS-NG, Alaskan and Canadian Arctic, 2017-2018**
 
 ```
@@ -66,7 +66,6 @@ https://daac.ornl.gov/daacdata/above/ABoVE_Airborne_AVIRIS_NG/data/ang20170714t2
 Extract the *.tar.gz*.
 
 ## Software 
----
 
 ### GDAL
 
@@ -80,7 +79,6 @@ Extract the *.tar.gz*.
 
 
 ## Demonstrating the ENVI format of the AVIRIS-NG Data
----
 
 ### 1. Extract the 1st band of data
 The AVIRIS-NG data contains 400+ bands. Warping the entire 400+ band image can take quite a long time, so use `gdal_translate` to extract just one band:
